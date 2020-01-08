@@ -36,16 +36,17 @@ from neurom import morphmath
 from neurom.core import Tree, iter_neurites, iter_sections, iter_segments, NeuriteType
 from neurom.core.dataformat import COLS
 from neurom.core.types import tree_type_checker as is_type
-from neurom.fst import _bifurcationfunc, _neuronfunc, sectionfunc
-from neurom.fst.sectionfunc import downstream_pathlength
-from neurom.fst._bifurcationfunc import partition_asymmetry, partition_pair
+from neurom.features.sectionfunc import downstream_pathlength
+from neurom.features.bifurcationfunc import partition_asymmetry, partition_pair
+from neurom.features import bifurcationfunc, neuronfunc, sectionfunc
+from neurom.features.sectionfunc import downstream_pathlength
 from neurom.geom import convex_hull
 from neurom.morphmath import interval_lengths
 
 
 def total_length(nrn_pop, neurite_type=NeuriteType.all):
     '''Get the total length of all sections in the group of neurons or neurites'''
-    nrns = _neuronfunc.neuron_population(nrn_pop)
+    nrns = neuronfunc.neuron_population(nrn_pop)
     return list(sum(section_lengths(n, neurite_type=neurite_type)) for n in nrns)
 
 
@@ -157,7 +158,7 @@ def section_path_lengths(neurites, neurite_type=NeuriteType.all):
 
 def map_neurons(fun, neurites, neurite_type):
     '''Map `fun` to all the neurites in a single or collection of neurons'''
-    nrns = _neuronfunc.neuron_population(neurites)
+    nrns = neuronfunc.neuron_population(neurites)
     return [fun(n, neurite_type=neurite_type) for n in nrns]
 
 
@@ -312,7 +313,7 @@ def segment_radial_distances(neurites, neurite_type=NeuriteType.all, origin=None
 
 def local_bifurcation_angles(neurites, neurite_type=NeuriteType.all):
     '''Get a list of local bifurcation angles in a collection of neurites'''
-    return map_sections(_bifurcationfunc.local_bifurcation_angle,
+    return map_sections(bifurcationfunc.local_bifurcation_angle,
                         neurites,
                         neurite_type=neurite_type,
                         iterator_type=Tree.ibifurcation_point)
@@ -320,7 +321,7 @@ def local_bifurcation_angles(neurites, neurite_type=NeuriteType.all):
 
 def remote_bifurcation_angles(neurites, neurite_type=NeuriteType.all):
     '''Get a list of remote bifurcation angles in a collection of neurites'''
-    return map_sections(_bifurcationfunc.remote_bifurcation_angle,
+    return map_sections(bifurcationfunc.remote_bifurcation_angle,
                         neurites,
                         neurite_type=neurite_type,
                         iterator_type=Tree.ibifurcation_point)
@@ -328,7 +329,7 @@ def remote_bifurcation_angles(neurites, neurite_type=NeuriteType.all):
 
 def bifurcation_partitions(neurites, neurite_type=NeuriteType.all):
     '''Partition at bifurcation points of a collection of neurites'''
-    return map(_bifurcationfunc.bifurcation_partition,
+    return map(bifurcationfunc.bifurcation_partition,
                iter_sections(neurites,
                              iterator_type=Tree.ibifurcation_point,
                              neurite_filter=is_type(neurite_type)))
@@ -377,7 +378,7 @@ def sibling_ratios(neurites, neurite_type=NeuriteType.all, method='first'):
     smallest and the largest child. It is a real number between
     0 and 1. Method argument allows one to consider mean diameters
     along the child section instead of diameter of the first point. '''
-    return map(lambda bif_point: _bifurcationfunc.sibling_ratio(bif_point, method),
+    return map(lambda bif_point: bifurcationfunc.sibling_ratio(bif_point, method),
                iter_sections(neurites,
                              iterator_type=Tree.ibifurcation_point,
                              neurite_filter=is_type(neurite_type)))
@@ -389,7 +390,7 @@ def diameter_power_relations(neurites, neurite_type=NeuriteType.all, method='fir
 
     This quantity gives an indication of how far the branching is from
     the Rall ratio (when =1).'''
-    return (_bifurcationfunc.diameter_power_relation(bif_point, method)
+    return (bifurcationfunc.diameter_power_relation(bif_point, method)
             for bif_point in iter_sections(neurites,
                                            iterator_type=Tree.ibifurcation_point,
                                            neurite_filter=is_type(neurite_type)))
